@@ -59,6 +59,11 @@ enum EventStatus {
   Tentative,
 }
 
+enum EventType {
+  Calendar,
+  Reminder,
+}
+
 extension DayOfWeekExtension on DayOfWeek {
   static int _value(DayOfWeek val) {
     switch (val) {
@@ -302,6 +307,19 @@ extension EventStatusExtensions on EventStatus {
         return 'CANCELED';
       case EventStatus.None:
         return 'NONE';
+    }
+  }
+
+  String get enumToString => _enumToString(this);
+}
+
+extension EventTypeExtensions on EventType {
+  String _enumToString(EventType enumValue) {
+    switch (enumValue) {
+      case EventType.Calendar:
+        return 'CALENDAR';
+      case EventType.Reminder:
+        return 'REMINDER';
     }
   }
 

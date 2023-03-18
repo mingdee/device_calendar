@@ -21,6 +21,8 @@ class Calendar {
   // Read-only. Account type associated with the calendar
   String? accountType;
 
+  late bool isForReminder;
+
   Calendar(
       {this.id,
       this.name,
@@ -28,7 +30,8 @@ class Calendar {
       this.isDefault,
       this.color,
       this.accountName,
-      this.accountType});
+      this.accountType,
+      this.isForReminder = false});
 
   Calendar.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -38,6 +41,7 @@ class Calendar {
     color = json['color'];
     accountName = json['accountName'];
     accountType = json['accountType'];
+    isForReminder = json['calendarType'] == "Reminder";
   }
 
   Map<String, dynamic> toJson() {
@@ -48,7 +52,8 @@ class Calendar {
       'isDefault': isDefault,
       'color': color,
       'accountName': accountName,
-      'accountType': accountType
+      'accountType': accountType,
+      'calendarType': isForReminder ? "Reminder" : "Calendar"
     };
 
     return data;

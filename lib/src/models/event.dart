@@ -49,6 +49,12 @@ class Event {
   /// Indicates if this event is of confirmed, canceled, tentative or none status
   EventStatus? status;
 
+  /// Indicates if this event type is of calendar, task, reminder
+  EventType? type;
+
+  /// Indicates if this reminder completed
+  bool? completed;
+
   ///Note for development:
   ///
   ///JSON field names are coded in dart, swift and kotlin to facilitate data exchange.
@@ -72,7 +78,9 @@ class Event {
       this.location,
       this.url,
       this.allDay = false,
-      this.status});
+      this.status,
+      this.type = EventType.Calendar,
+      this.completed = false});
 
   ///Get Event from JSON.
   ///
@@ -117,7 +125,7 @@ class Event {
     startTimeZone ??= local;
     start = startTimestamp != null
         ? TZDateTime.fromMillisecondsSinceEpoch(startTimeZone, startTimestamp)
-        : TZDateTime.now(local);
+        : null;
 
     endTimestamp = json['eventEndDate'];
     endLocationName = json['eventEndTimeZone'];
@@ -125,7 +133,7 @@ class Event {
     endLocation ??= startTimeZone;
     end = endTimestamp != null
         ? TZDateTime.fromMillisecondsSinceEpoch(endLocation, endTimestamp)
-        : TZDateTime.now(local);
+        : null;
     allDay = json['eventAllDay'] ?? false;
     if (Platform.isAndroid && (allDay ?? false)) {
       // On Android, the datetime in an allDay event is adjusted to local
@@ -143,6 +151,8 @@ class Event {
     location = json['eventLocation'];
     availability = parseStringToAvailability(json['availability']);
     status = parseStringToEventStatus(json['eventStatus']);
+    type = parseStringToEventType(json['eventType']);
+    completed = json['eventCompleted'] ?? false;
 
     foundUrl = json['eventURL']?.toString();
     if (foundUrl?.isEmpty ?? true) {
@@ -191,17 +201,17 @@ class Event {
     data['eventId'] = eventId;
     data['eventTitle'] = title;
     data['eventDescription'] = description;
-    data['eventStartDate'] = start?.millisecondsSinceEpoch ??
-        TZDateTime.now(local).millisecondsSinceEpoch;
+    data['eventStartDate'] = start?.millisecondsSinceEpoch;
     data['eventStartTimeZone'] = start?.location.name;
-    data['eventEndDate'] = end?.millisecondsSinceEpoch ??
-        TZDateTime.now(local).millisecondsSinceEpoch;
+    data['eventEndDate'] = end?.millisecondsSinceEpoch;
     data['eventEndTimeZone'] = end?.location.name;
     data['eventAllDay'] = allDay;
     data['eventLocation'] = location;
     data['eventURL'] = url?.data?.contentText;
     data['availability'] = availability.enumToString;
     data['eventStatus'] = status?.enumToString;
+    data['eventType'] = type?.enumToString;
+    data['eventCompleted'] = completed;
 
     if (attendees != null) {
       data['attendees'] = attendees?.map((a) => a?.toJson()).toList();
@@ -249,6 +259,17 @@ class Event {
         return EventStatus.Canceled;
       case 'NONE':
         return EventStatus.None;
+    }
+    return null;
+  }
+
+  EventType? parseStringToEventType(String? value) {
+    var testValue = value?.toUpperCase();
+    switch (testValue) {
+      case 'CALENDAR':
+        return EventType.Calendar;
+      case 'REMINDER':
+        return EventType.Reminder;
     }
     return null;
   }

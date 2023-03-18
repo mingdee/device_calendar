@@ -11,6 +11,7 @@ import 'package:timezone/timezone.dart';
 import 'common/channel_constants.dart';
 import 'common/error_codes.dart';
 import 'common/error_messages.dart';
+import 'common/calendar_enums.dart';
 import 'models/calendar.dart';
 import 'models/event.dart';
 import 'models/result.dart';
@@ -56,7 +57,8 @@ class DeviceCalendarPlugin {
   /// Retrieves all of the device defined calendars
   ///
   /// Returns a [Result] containing a list of device [Calendar]
-  Future<Result<UnmodifiableListView<Calendar>>> retrieveCalendars() async {
+  Future<Result<UnmodifiableListView<Calendar>>> retrieveCalendars(
+      {bool isForReminder = false}) async {
     return _invokeChannelMethod(
       ChannelConstants.methodNameRetrieveCalendars,
       evaluateResponse: (rawData) => UnmodifiableListView(
@@ -64,6 +66,10 @@ class DeviceCalendarPlugin {
               (decodedCalendar) => Calendar.fromJson(decodedCalendar),
             ),
       ),
+      arguments: () => <String, Object?>{
+        ChannelConstants.parameterNameCalendarType:
+            isForReminder ? 'REMINDER' : 'CALENDAR'
+      },
     );
   }
 
@@ -125,10 +131,8 @@ class DeviceCalendarPlugin {
   /// The `eventId` parameter is the id of the event that plugin will try to delete
   ///
   /// Returns a [Result] indicating if the event has (true) or has not (false) been deleted from the calendar
-  Future<Result<bool>> deleteEvent(
-    String? calendarId,
-    String? eventId,
-  ) async {
+  Future<Result<bool>> deleteEvent(String? calendarId, String? eventId,
+      {bool isForReminder = false}) async {
     return _invokeChannelMethod(
       ChannelConstants.methodNameDeleteEvent,
       assertParameters: (result) {
@@ -147,6 +151,8 @@ class DeviceCalendarPlugin {
       arguments: () => <String, Object?>{
         ChannelConstants.parameterNameCalendarId: calendarId,
         ChannelConstants.parameterNameEventId: eventId,
+        ChannelConstants.parameterNameCalendarType:
+            isForReminder ? "Reminder" : "Calendar",
       },
     );
   }
@@ -235,9 +241,10 @@ class DeviceCalendarPlugin {
 
         _assertParameter(
           result,
-          !(event.allDay == true && (event.calendarId?.isEmpty ?? true) ||
-              event.start == null ||
-              event.end == null),
+          !(event.allDay == true &&
+              ((event.calendarId?.isEmpty ?? true) ||
+                  event.start == null ||
+                  event.end == null)),
           ErrorCodes.invalidArguments,
           ErrorMessages.createOrUpdateEventInvalidArgumentsMessageAllDay,
         );
@@ -245,9 +252,23 @@ class DeviceCalendarPlugin {
         _assertParameter(
           result,
           !(event.allDay != true &&
+              event.type == EventType.Calendar &&
               ((event.calendarId?.isEmpty ?? true) ||
                   event.start == null ||
                   event.end == null ||
+                  (event.start != null &&
+                      event.end != null &&
+                      event.start!.isAfter(event.end!)))),
+          ErrorCodes.invalidArguments,
+          ErrorMessages.createOrUpdateEventInvalidArgumentsMessage,
+        );
+
+        _assertParameter(
+          result,
+          !(event.allDay != true &&
+              event.type == EventType.Reminder &&
+              ((event.calendarId?.isEmpty ?? true) ||
+                  event.start == null ||
                   (event.start != null &&
                       event.end != null &&
                       event.start!.isAfter(event.end!)))),
@@ -275,6 +296,7 @@ class DeviceCalendarPlugin {
     String? calendarName, {
     Color? calendarColor,
     String? localAccountName,
+    bool isForReminder = false,
   }) async {
     return _invokeChannelMethod(
       ChannelConstants.methodNameCreateCalendar,
@@ -295,7 +317,9 @@ class DeviceCalendarPlugin {
         ChannelConstants.parameterNameLocalAccountName:
             localAccountName?.isEmpty ?? true
                 ? 'Device Calendar'
-                : localAccountName
+                : localAccountName,
+        ChannelConstants.parameterNameCalendarType:
+            isForReminder ? 'REMINDER' : 'CALENDAR'
       },
     );
   }
