@@ -151,8 +151,8 @@ class DeviceCalendarPlugin {
       arguments: () => <String, Object?>{
         ChannelConstants.parameterNameCalendarId: calendarId,
         ChannelConstants.parameterNameEventId: eventId,
-        ChannelConstants.parameterNameCalendarType:
-            isForReminder ? "Reminder" : "Calendar",
+        ChannelConstants.parameterNameEventType:
+            isForReminder ? "REMINDER" : "CALENDAR",
       },
     );
   }
