@@ -275,6 +275,13 @@ class DeviceCalendarPlugin {
           ErrorCodes.invalidArguments,
           ErrorMessages.createOrUpdateEventInvalidArgumentsMessage,
         );
+
+        _assertParameter(
+          result,
+          !(event.title == null),
+          ErrorCodes.invalidArguments,
+          ErrorMessages.createOrUpdateEventInvalidArgumentsMessage,
+        );
       },
       arguments: () => event.toJson(),
     );
