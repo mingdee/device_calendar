@@ -747,7 +747,10 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
             
             if( ekReminder != nil) {
                 let startComp = startDate == nil ?nil :Calendar.current.dateComponents([.year, .month, .day], from: startDate!)
-                let dueComp = endDate == nil ?nil :Calendar.current.dateComponents([.year, .month, .day], from: endDate!)
+                var dueComp = endDate == nil ?nil : Calendar.current.dateComponents([.year, .month, .day, .hour, .minute, .second], from: endDate!)
+                if dueComp != nil && dueComp!.hour == 0 && dueComp!.minute == 0 && dueComp!.second == 0 {
+                    dueComp = Calendar.current.dateComponents([.year, .month, .day], from: endDate!)
+                }
                 
                 var noDueDate = false
                 if startDate != nil && endDate != nil && startDate! > endDate! {
