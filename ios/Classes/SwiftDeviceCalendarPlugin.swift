@@ -188,24 +188,24 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
         result(hasPermissions)
     }
 
-    private func getSource() -> EKSource? {
+    private func getSource() -> [EKSource]? {
+//      let allSources = eventStore.sources;
+//        for s in allSources {
+//            print("\(s.title) \(s.sourceType)");
+//        }
       let localSources = eventStore.sources.filter { $0.sourceType == .local }
 
       if (!localSources.isEmpty) {
-        return localSources.first
+          return localSources;
       }
 
-      if let defaultSource = eventStore.defaultCalendarForNewEvents?.source {
-        return defaultSource
-      }
-
+//      if let defaultSource = eventStore.defaultCalendarForNewEvents?.source {
+//        return defaultSource
+//      }
+//
       let iCloudSources = eventStore.sources.filter { $0.sourceType == .calDAV && $0.title == "iCloud" }
 
-      if (!iCloudSources.isEmpty) {
-        return iCloudSources.first
-      }
-
-      return nil
+      return iCloudSources
     }
     
     private func getiCloudSource() -> [EKSource]? {
@@ -233,8 +233,8 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
             calendar.cgColor = UIColor(red: 255, green: 0, blue: 0, alpha: 0).cgColor // Red colour as a default
         }
         
-        guard let sources = getiCloudSource() else {
-          result(FlutterError(code: self.genericError, message: "Local calendar was not found.", details: nil))
+        guard let sources = getSource() else {
+          result(FlutterError(code: self.genericError, message: "Calendar was not found.", details: nil))
           return
         }
 
@@ -270,6 +270,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
                     accountName: ekCalendar.source.title,
                     accountType: getAccountType(ekCalendar.source.sourceType))
                 calendars.append(calendar)
+//                print("Cal Title: \(ekCalendar.source.title) Cal Type: \(getAccountType(ekCalendar.source.sourceType)) Cal Id: \(ekCalendar.source.sourceIdentifier)");
             }
 
             self.encodeJsonAndFinish(codable: calendars, result: result)
